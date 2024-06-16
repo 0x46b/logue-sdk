@@ -1,0 +1,40 @@
+[
+  {
+    "arguments": [
+      "/home/hase/Dokumente/GIT/logue-sdk/platform/nts-1_mkii/bitcrusher_mod//../../../tools/gcc/gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-g++",
+      "-c",
+      "-mcpu=cortex-m7",
+      "-mthumb",
+      "-mno-thumb-interwork",
+      "-DTHUMB_NO_INTERWORKING",
+      "-DTHUMB_PRESENT",
+      "-g",
+      "-Os",
+      "-mlittle-endian",
+      "-mfloat-abi=hard",
+      "-mfpu=fpv4-sp-d16",
+      "-fsingle-precision-constant",
+      "-fcheck-new",
+      "-fPIC",
+      "-fno-use-cxa-atexit",
+      "-std=c++11",
+      "-fno-rtti",
+      "-fno-exceptions",
+      "-fno-non-call-exceptions",
+      "-Wa,-alms=/home/hase/Dokumente/GIT/logue-sdk/platform/nts-1_mkii/bitcrusher_mod//build/lst/unit.lst",
+      "-DSTM32H725xE",
+      "-DCORTEX_USE_FPU=TRUE",
+      "-DARM_MATH_CM7",
+      "-D__FPU_PRESENT",
+      "-I.",
+      "-I/home/hase/Dokumente/GIT/logue-sdk/platform/nts-1_mkii/common",
+      "-I/home/hase/Dokumente/GIT/logue-sdk/platform/nts-1_mkii/bitcrusher_mod//../../ext/CMSIS/CMSIS/Include",
+      "-o",
+      "/home/hase/Dokumente/GIT/logue-sdk/platform/nts-1_mkii/bitcrusher_mod//build/obj/unit.o",
+      "unit.cc"
+    ],
+    "directory": "/home/hase/Dokumente/GIT/logue-sdk/platform/nts-1_mkii/bitcrusher_mod",
+    "file": "/home/hase/Dokumente/GIT/logue-sdk/platform/nts-1_mkii/bitcrusher_mod/unit.cc",
+    "output": "/home/hase/Dokumente/GIT/logue-sdk/platform/nts-1_mkii/bitcrusher_mod/build/obj/unit.o"
+  }
+]
