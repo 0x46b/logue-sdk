@@ -4,12 +4,16 @@ This software is released under the MIT License, see LICENSE.txt.
 //*/
 
 #include "unit_osc.h"
+#include "oscillator.h"
 #include <climits>
 
 enum {
 	SHAPE = 0U,
-	ALT,
-	TYPE,
+	DETUNE,
+	TYP1,
+	TYP2,
+	LVL1,
+	LVL2,
 	NUM_PARAMS
 };
 
@@ -20,27 +24,41 @@ enum TYPE_VALUES {
 	NUM_TYPE_VALUES,
 };
 
-static struct {
+static struct UserParameters {
 	float shape = 0.f;
 	float shiftshape = 0.f;
-	uint32_t type{ 1 };
+	uint32_t detune = 0.f;
+	uint32_t lvl1 = 0;
+	uint32_t lvl2 = 0;
+	uint32_t type1{ 1 };
+	uint32_t type2{ 1 };
 
 	void reset() {
 		shape = 0.f;
-		shiftshape = 0.f;
-		type = 1;
+		detune = 0.f;
+		type1 = 1;
+		type2 = 1;
 	}
 } s_param;
 
-static struct {
-	float phi0 = 0.f;
-	float w00 = 0.f;
-} s_state;
-
 static unit_runtime_desc_t runtime_desc;
+static Oscillator* osc_1;
+static Oscillator *osc_2;
+
+static OscillatorType OscTypeFromTypeValue(uint32_t value) {
+  switch(value){
+  case TYPE_SINUS:
+    return SINUS;
+  case TYPE_SAW:
+    return SAW;
+  case TYPE_SQR:
+    return SQR;
+  default:
+    return SINUS;
+  }
+}
 
 // ---- Callbacks exposed to runtime ----------------------------------------------
-
 __unit_callback int8_t unit_init(const unit_runtime_desc_t* desc) {
 	if (!desc)
 		return k_unit_err_undef;
@@ -60,16 +78,23 @@ __unit_callback int8_t unit_init(const unit_runtime_desc_t* desc) {
 	runtime_desc = *desc;
 
 	s_param.reset();
+	osc_1 = new Oscillator();
+	osc_2 = new Oscillator();
+	
+	osc_1->Reset();
+	osc_2->Reset();
 
 	return k_unit_err_none;
 }
 
 __unit_callback void unit_teardown() {
+  delete osc_1;
+  delete osc_2;
 }
 
 __unit_callback void unit_reset() {
-	s_state.phi0 = 0.f;
-	s_state.w00 = 0.f;
+	osc_1->Reset();
+	osc_2->Reset();
 }
 
 __unit_callback void unit_resume() {
@@ -78,48 +103,48 @@ __unit_callback void unit_resume() {
 __unit_callback void unit_suspend() {
 }
 
-static float GetSignal(float phi) {
-	switch (s_param.type)
-	{
-	case TYPE_SINUS:
-		return osc_sinf(phi);
-	case TYPE_SAW:
-		return osc_sawf(phi);
-	case TYPE_SQR:
-		return osc_sqrf(phi);
-	}
-}
-
 __unit_callback void unit_render(const float* in, float* out, uint32_t frames) {
 	const unit_runtime_osc_context_t* ctxt = static_cast<const unit_runtime_osc_context_t*>(runtime_desc.hooks.runtime_context);
+	
+	float shape = unit_get_param_value(SHAPE);
+	uint32_t detune = unit_get_param_value(DETUNE);
+	uint32_t type1 = unit_get_param_value(TYP1);
+	uint32_t type2 = unit_get_param_value(TYP2);
+	uint32_t lvl1 = unit_get_param_value(LVL1);
+	uint32_t lvl2 = unit_get_param_value(LVL2);
 
-	s_state.w00 = osc_w0f_for_note((ctxt->pitch) >> 8, ctxt->pitch & 0xFF);
-
-	// Temporaries.
-	float phi0 = s_state.phi0;
-	const float w00 = s_state.w00;
+	osc_1->SetNote(ctxt->pitch);
+	
+	// // Temporaries.
+	
+	// float phi1 = s_state_osc2.phi;
+	// const float w01 = s_state_osc2.w0;
+	
 
 	// const float * __restrict in_p = in;
 	float* __restrict y = out;
 	const float* y_e = y + frames;
-	float shape = unit_get_param_value(SHAPE);
 
 	for (; y != y_e; )
 	{
-		float moddedPhi = phi0;
-		if (shape > 0)
-		{
-			moddedPhi = phi0 * (shape / 2);
-		}
-
-		const float sig = GetSignal(moddedPhi);
-		*(y++) = sig;
-
-		phi0 += w00;
-		phi0 -= (uint32_t)phi0;
+	  osc_1->Render();
+	  
+	  // float moddedPhi0 = phi0/2;
+	  
+	  // if (shape > 0)
+	  //   {
+	  //     moddedPhi0 = phi0 * (shape / 2);
+	  //     moddedPhi1 = phi1 * (shape / 2);
+	  //   }
+	  
+	  const float sig1 = osc_1->Render();
+	  const float sig2 = osc_2->Render();
+	  
+	  *(y++) = sig1 + sig2;
+	  
+	  osc_1->Tick();
+	  osc_2->Tick();
 	}
-
-	s_state.phi0 = phi0;
 }
 
 __unit_callback void unit_set_param_value(uint8_t id, int32_t value) {
@@ -129,14 +154,23 @@ __unit_callback void unit_set_param_value(uint8_t id, int32_t value) {
 		value = clipminmaxi32(0, value, 1023);
 		s_param.shape = param_10bit_to_f32(value);
 		break;
-	case ALT:
+	case DETUNE:
 		// 0 .. 1023 -> 0.0 .. 1.0
-		value = clipminmaxi32(0, value, 1023);
-		s_param.shiftshape = param_10bit_to_f32(value);
+		value = clipminmaxi32(0, value, 15);
+		osc_2->SetDetune(value);
 		break;
-	case TYPE:
+	case TYP1:
 		value = clipminmaxi32(TYPE_SINUS, value, NUM_TYPE_VALUES - 1);
-		s_param.type = value;
+		osc_1->SetType(OscTypeFromTypeValue(value));
+	case TYP2:
+		value = clipminmaxi32(TYPE_SINUS, value, NUM_TYPE_VALUES - 1);
+		osc_2->SetType(OscTypeFromTypeValue(value));
+	case LVL1:
+		value = clipminmaxi32(0, value, 6);
+		osc_1->SetLevel(value);
+	case LVL2:
+		value = clipminmaxi32(0, value, 6);
+		osc_2->SetLevel(value);
 	default:
 		break;
 	}
@@ -148,12 +182,18 @@ __unit_callback int32_t unit_get_param_value(uint8_t id) {
 		// 0.0 .. 1.0 -> 0 .. 1023
 		return param_f32_to_10bit(s_param.shape);
 		break;
-	case ALT:
+	case DETUNE:
 		// 0.0 .. 1.0 -> 0 .. 1023
-		return param_f32_to_10bit(s_param.shiftshape);
+	  return param_f32_to_10bit(osc_2->GetDetune());
 		break;
-	case TYPE:
-		return s_param.type;
+	case LVL1:
+	  return osc_1->GetLevel();
+	case LVL2:
+	  return osc_2->GetLevel();
+	case TYP1:
+	  return osc_1->GetType();
+	case TYP2:
+	  return osc_2->GetType();
 	default:
 		break;
 	}
@@ -173,7 +213,8 @@ __unit_callback const char* unit_get_param_str_value(uint8_t id, int32_t value) 
 	};
 
 	switch (id) {
-	case TYPE:
+	case TYP1:
+	case TYP2:
 		if (value >= TYPE_SINUS && value < NUM_TYPE_VALUES)
 			return type_strings[value];
 		break;

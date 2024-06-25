@@ -13,7 +13,7 @@ const __unit_header unit_header_t unit_header = {
     .unit_id = 0x0U,                                       	// ID for this unit. Scoped within the context of a given dev_id.
     .version = 0x00010000U,                                	// This unit's version: major.minor.patch (major<<16 minor<<8 patch).
     .name = "r4bb1t",                                      	// Name for this unit, will be displayed on device
-    .num_params = 3,                                       	// Number of valid parameter descriptors. (max. 10)
+    .num_params = 6,                                       	// Number of valid parameter descriptors. (max. 10)
     .params = {
         // Format:
         // min, max, center, default, type, frac. bits, frac. mode, <reserved>, name
@@ -25,13 +25,13 @@ const __unit_header unit_header_t unit_header = {
         {0, 1023, 0, 0, k_unit_param_type_none, 0, 0, 0, {"SHPE"}},
 
         // B knob
-        {0, 1023, 0, 0, k_unit_param_type_none, 0, 0, 0, {"ALT"}},
+        {0, 15, 0, 0, k_unit_param_type_cents, 0, 0, 0, {"D3TN"}},
 
         // 8 Edit menu parameters
-        {0, 2, 0, 1, k_unit_param_type_strings, 0, 0, 0, {"T4P3"}}, // Example of a strings type parameter
-        {0, 0, 0, 0, k_unit_param_type_none, 0, 0, 0, {""}},
-        {0, 0, 0, 0, k_unit_param_type_none, 0, 0, 0, {""}},
-        {0, 0, 0, 0, k_unit_param_type_none, 0, 0, 0, {""}},
+        {0, 2, 0, 1, k_unit_param_type_strings, 0, 0, 0, {"TYP1"}}, // Example of a strings type parameter
+        {0, 2, 0, 1, k_unit_param_type_strings, 0, 0, 0, {"TYP2"}}, // Example of a strings type parameter
+        {0, 6, 0, 0, k_unit_param_type_db, 0, 0, 0, {"LVL1"}},
+        {0, 6, 0, 0, k_unit_param_type_db, 0, 0, 0, {"LVL2"}},
         {0, 0, 0, 0, k_unit_param_type_none, 0, 0, 0, {""}},
         {0, 0, 0, 0, k_unit_param_type_none, 0, 0, 0, {""}},
         {0, 0, 0, 0, k_unit_param_type_none, 0, 0, 0, {""}},
