@@ -13,7 +13,7 @@ PROJECT_TYPE := osc
 UCSRC = ./user/header.c $(wildcard ./user/lib/*.c)
 
 # C++ sources
-UCXXSRC = ./user/unit.cc
+UCXXSRC = ./user/unit.cc ./usr/oscillator.cc
 
 # List ASM source files here
 UASMSRC = 
