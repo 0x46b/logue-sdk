@@ -1,9 +1,13 @@
+#+TAGS:@second_brain(s) @idea(i) @formula(f)
+#+TODO: TODO(t) INPROGRESS(p) BLOCKED(b) | DONE(d) CANCELED(c)
+#+OPTIONS: todo:nil tags:nil p:t
+
+
 * Interesting links
-https://www.dspforaudioprogramming.com/
-217
+[[https://www.dspforaudioprogramming.com/][DSP for audio-programming]]
 
 * General Notes
-** Formulas
+** Formulas                                                         :formula:
 - sin(x) => full oscillation every 2\pi steps
 - 1Hz Sinewave => sin(2\pi*x)
   - e.g.: 440 Hz (A4) => sin(2\pi*x*440)
@@ -12,3 +16,14 @@ https://www.dspforaudioprogramming.com/
     - <Note>/\sqrt[12]{2} => One octave down
       
 * LFOs
+
+* Ideas/Todos
+
+** TODO Features [0\4]                                                :idea:
+- [ ] Correct detuning (see above)
+- [ ] Add dynamic oscillator generation (drones?) (user-choice ?)
+- [ ] Add an LFO
+- [ ] Try different modulation-types (AM, FM, PM) 
+
+** TODO Bugs [0\0]
+- [ ] Volumelevel drops if type sin is choosen
