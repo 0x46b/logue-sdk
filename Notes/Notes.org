@@ -1,0 +1,14 @@
+* Interesting links
+https://www.dspforaudioprogramming.com/
+217
+
+* General Notes
+** Formulas
+- sin(x) => full oscillation every 2\pi steps
+- 1Hz Sinewave => sin(2\pi*x)
+  - e.g.: 440 Hz (A4) => sin(2\pi*x*440)
+  - that means:
+    - <Note>*\sqrt[12]{2} => One octave up
+    - <Note>/\sqrt[12]{2} => One octave down
+      
+* LFOs
