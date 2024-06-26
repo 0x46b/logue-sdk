@@ -7,7 +7,7 @@ Copyright 2024 Sebastian Murschall
 #include <climits>
 
 enum {
-	SHAPE = 0U,
+	BITCRUSH = 0U,
 	DETUNE,
 	TYP1,
 	TYP2,
@@ -20,11 +20,12 @@ enum TYPE_VALUES {
 	TYPE_SINUS = 0,
 	TYPE_SAW,
 	TYPE_SQR,
+	TYPE_OFF,
 	NUM_TYPE_VALUES,
 };
 
 static struct UserParameters {
-	float shape = 0.f;
+	float bitcrush = 0.f;
 	float shiftshape = 0.f;
 	uint32_t detune = 0.f;
 	uint32_t lvl1 = 0;
@@ -33,10 +34,12 @@ static struct UserParameters {
 	uint32_t type2{ 1 };
 
 	void reset() {
-		shape = 0.f;
+		bitcrush = 0.f;
 		detune = 0.f;
 		type1 = 1;
 		type2 = 1;
+		lvl1 = 6;
+		lvl2 = 6;
 	}
 } s_param;
 
@@ -52,8 +55,10 @@ static OscillatorType OscTypeFromTypeValue(uint32_t value) {
     return SAW;
   case TYPE_SQR:
     return SQR;
+  case TYPE_OFF:
+    return OFF;
   default:
-    return SINUS;
+    return OFF;
   }
 }
 
@@ -101,7 +106,7 @@ __unit_callback void unit_suspend() {
 __unit_callback void unit_render(const float* in, float* out, uint32_t frames) {
 	const unit_runtime_osc_context_t* ctxt = static_cast<const unit_runtime_osc_context_t*>(runtime_desc.hooks.runtime_context);
 	
-	float shape = unit_get_param_value(SHAPE);
+	float shape = unit_get_param_value(BITCRUSH);
 	uint32_t detune = unit_get_param_value(DETUNE);
 	uint32_t type1 = unit_get_param_value(TYP1);
 	uint32_t type2 = unit_get_param_value(TYP2);
@@ -109,33 +114,23 @@ __unit_callback void unit_render(const float* in, float* out, uint32_t frames) {
 	uint32_t lvl2 = unit_get_param_value(LVL2);
 
 	osc_1.SetNote(ctxt->pitch);
+	osc_2.SetNote(ctxt->pitch);
 	
-	// // Temporaries.
-	
-	// float phi1 = s_state_osc2.phi;
-	// const float w01 = s_state_osc2.w0;
-	
-
 	// const float * __restrict in_p = in;
 	float* __restrict y = out;
 	const float* y_e = y + frames;
 
 	for (; y != y_e; )
 	{
-	  osc_1.Render();
-	  
-	  // float moddedPhi0 = phi0/2;
-	  
-	  // if (shape > 0)
-	  //   {
-	  //     moddedPhi0 = phi0 * (shape / 2);
-	  //     moddedPhi1 = phi1 * (shape / 2);
-	  //   }
-	  
 	  const float sig1 = osc_1.Render();
 	  const float sig2 = osc_2.Render();
-	  
-	  *(y++) = sig1 + sig2;
+
+	  /* No need to add signal if osc_2 is off*/
+	  if(osc_2.GetType() == OFF){
+	    *(y++) = fastertanhf(sig1);
+	  } else{
+	    *(y++) = fastertanhf((sig1/2) + (sig2/2));
+	  }
 	  
 	  osc_1.Tick();
 	  osc_2.Tick();
@@ -144,10 +139,10 @@ __unit_callback void unit_render(const float* in, float* out, uint32_t frames) {
 
 __unit_callback void unit_set_param_value(uint8_t id, int32_t value) {
 	switch (id) {
-	case SHAPE:
+	case BITCRUSH:
 		// 0 .. 1023 -> 0.0 .. 1.0
 		value = clipminmaxi32(0, value, 1023);
-		s_param.shape = param_10bit_to_f32(value);
+		s_param.bitcrush = param_10bit_to_f32(value);
 		break;
 	case DETUNE:
 		// 0 .. 1023 -> 0.0 .. 1.0
@@ -173,9 +168,9 @@ __unit_callback void unit_set_param_value(uint8_t id, int32_t value) {
 
 __unit_callback int32_t unit_get_param_value(uint8_t id) {
 	switch (id) {
-	case SHAPE:
+	case BITCRUSH:
 		// 0.0 .. 1.0 -> 0 .. 1023
-		return param_f32_to_10bit(s_param.shape);
+		return param_f32_to_10bit(s_param.bitcrush);
 		break;
 	case DETUNE:
 		// 0.0 .. 1.0 -> 0 .. 1023
@@ -205,6 +200,7 @@ __unit_callback const char* unit_get_param_str_value(uint8_t id, int32_t value) 
 	  "SIN",
 	  "SAW",
 	  "SQR",
+	  "OFF"
 	};
 
 	switch (id) {

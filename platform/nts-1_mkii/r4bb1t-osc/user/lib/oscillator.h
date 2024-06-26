@@ -5,7 +5,8 @@
 enum OscillatorType{
   SINUS,
   SAW,
-  SQR
+  SQR,
+  OFF
 };
 
 class Oscillator {
@@ -25,13 +26,15 @@ class Oscillator {
 	return osc_sawf(this->phi);
       case SQR:
 	return osc_sqrf(this->phi);
+      case OFF:
+	return 0.f;
       default:
 	return 0.f;
       }
   }
   
   float AdjustSignalLevel(float signal){
-    return signal * this->level / 6;
+    return fastertanhf(signal * this->level / 6);
   }
 
 public:
@@ -54,6 +57,8 @@ public:
   void Reset(){
     this->phi = 0;
     this->w0 = 0;
+    this->level = 6;
+    this->detune = 0;
   }
 
   void SetType(OscillatorType type){
