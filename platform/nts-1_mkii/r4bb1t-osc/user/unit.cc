@@ -93,8 +93,9 @@ __unit_callback void unit_teardown() {
 }
 
 __unit_callback void unit_reset() {
-	osc_1.Reset();
-	osc_2.Reset();
+  s_param.reset();
+  osc_1.Reset();
+  osc_2.Reset();
 }
 
 __unit_callback void unit_resume() {
@@ -106,13 +107,8 @@ __unit_callback void unit_suspend() {
 __unit_callback void unit_render(const float* in, float* out, uint32_t frames) {
 	const unit_runtime_osc_context_t* ctxt = static_cast<const unit_runtime_osc_context_t*>(runtime_desc.hooks.runtime_context);
 	
-	float shape = unit_get_param_value(BITCRUSH);
-	uint32_t detune = unit_get_param_value(DETUNE);
-	uint32_t type1 = unit_get_param_value(TYP1);
-	uint32_t type2 = unit_get_param_value(TYP2);
-	uint32_t lvl1 = unit_get_param_value(LVL1);
-	uint32_t lvl2 = unit_get_param_value(LVL2);
-
+	float bitcrush = unit_get_param_value(BITCRUSH);
+	
 	osc_1.SetNote(ctxt->pitch);
 	osc_2.SetNote(ctxt->pitch);
 	
@@ -124,14 +120,21 @@ __unit_callback void unit_render(const float* in, float* out, uint32_t frames) {
 	{
 	  const float sig1 = osc_1.Render();
 	  const float sig2 = osc_2.Render();
+	  float combinedSignal;
 
 	  /* No need to add signal if osc_2 is off*/
 	  if(osc_2.GetType() == OFF){
-	    *(y++) = fastertanhf(sig1);
+	    combinedSignal = fastertanhf(sig1);
 	  } else{
-	    *(y++) = fastertanhf((sig1/2) + (sig2/2));
+	    combinedSignal = fastertanhf((sig1/2) + (sig2/2));
 	  }
-	  
+
+	  if(bitcrush > 0) {
+	    float scaling_f = osc_bitresf(s_param.bitcrush);
+	    combinedSignal = combinedSignal*scaling_f;
+	  }
+
+	  *(y++) = combinedSignal;
 	  osc_1.Tick();
 	  osc_2.Tick();
 	}

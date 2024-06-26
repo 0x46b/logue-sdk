@@ -44,7 +44,6 @@ public:
   
   float Render() {
     float phi0 = this->phi / 2;
-    const float w00 = this->w0;
     const float signal = this->GetSignal();
     return this->AdjustSignalLevel(signal);
   }
@@ -78,7 +77,8 @@ public:
   }
 
   void SetNote(uint16_t pitch){
-    this->w0 = osc_w0f_for_note(pitch >> 8, pitch & 0xFF);
+    uint16_t detunedPitch = pitch+this->detune;
+    this->w0 = osc_w0f_for_note(detunedPitch >> 8, detunedPitch & 0xFF);
   }
 
    uint32_t GetNote(uint16_t pitch) {
