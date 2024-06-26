@@ -42,8 +42,8 @@ static struct UserParameters {
 } s_param;
 
 static unit_runtime_desc_t runtime_desc;
-static Oscillator* osc_1;
-static Oscillator *osc_2;
+static Oscillator osc_1;
+static Oscillator osc_2;
 
 static OscillatorType OscTypeFromTypeValue(uint32_t value) {
   switch(value){
@@ -78,23 +78,19 @@ __unit_callback int8_t unit_init(const unit_runtime_desc_t* desc) {
 	runtime_desc = *desc;
 
 	s_param.reset();
-	osc_1 = new Oscillator();
-	osc_2 = new Oscillator();
 	
-	osc_1->Reset();
-	osc_2->Reset();
+	osc_1.Reset();
+	osc_2.Reset();
 
 	return k_unit_err_none;
 }
 
 __unit_callback void unit_teardown() {
-  delete osc_1;
-  delete osc_2;
 }
 
 __unit_callback void unit_reset() {
-	osc_1->Reset();
-	osc_2->Reset();
+	osc_1.Reset();
+	osc_2.Reset();
 }
 
 __unit_callback void unit_resume() {
@@ -113,7 +109,7 @@ __unit_callback void unit_render(const float* in, float* out, uint32_t frames) {
 	uint32_t lvl1 = unit_get_param_value(LVL1);
 	uint32_t lvl2 = unit_get_param_value(LVL2);
 
-	osc_1->SetNote(ctxt->pitch);
+	osc_1.SetNote(ctxt->pitch);
 	
 	// // Temporaries.
 	
@@ -127,7 +123,7 @@ __unit_callback void unit_render(const float* in, float* out, uint32_t frames) {
 
 	for (; y != y_e; )
 	{
-	  osc_1->Render();
+	  osc_1.Render();
 	  
 	  // float moddedPhi0 = phi0/2;
 	  
@@ -137,13 +133,13 @@ __unit_callback void unit_render(const float* in, float* out, uint32_t frames) {
 	  //     moddedPhi1 = phi1 * (shape / 2);
 	  //   }
 	  
-	  const float sig1 = osc_1->Render();
-	  const float sig2 = osc_2->Render();
+	  const float sig1 = osc_1.Render();
+	  const float sig2 = osc_2.Render();
 	  
 	  *(y++) = sig1 + sig2;
 	  
-	  osc_1->Tick();
-	  osc_2->Tick();
+	  osc_1.Tick();
+	  osc_2.Tick();
 	}
 }
 
@@ -157,20 +153,20 @@ __unit_callback void unit_set_param_value(uint8_t id, int32_t value) {
 	case DETUNE:
 		// 0 .. 1023 -> 0.0 .. 1.0
 		value = clipminmaxi32(0, value, 15);
-		osc_2->SetDetune(value);
+		osc_2.SetDetune(value);
 		break;
 	case TYP1:
 		value = clipminmaxi32(TYPE_SINUS, value, NUM_TYPE_VALUES - 1);
-		osc_1->SetType(OscTypeFromTypeValue(value));
+		osc_1.SetType(OscTypeFromTypeValue(value));
 	case TYP2:
 		value = clipminmaxi32(TYPE_SINUS, value, NUM_TYPE_VALUES - 1);
-		osc_2->SetType(OscTypeFromTypeValue(value));
+		osc_2.SetType(OscTypeFromTypeValue(value));
 	case LVL1:
 		value = clipminmaxi32(0, value, 6);
-		osc_1->SetLevel(value);
+		osc_1.SetLevel(value);
 	case LVL2:
 		value = clipminmaxi32(0, value, 6);
-		osc_2->SetLevel(value);
+		osc_2.SetLevel(value);
 	default:
 		break;
 	}
@@ -184,16 +180,16 @@ __unit_callback int32_t unit_get_param_value(uint8_t id) {
 		break;
 	case DETUNE:
 		// 0.0 .. 1.0 -> 0 .. 1023
-	  return param_f32_to_10bit(osc_2->GetDetune());
+	  return param_f32_to_10bit(osc_2.GetDetune());
 		break;
 	case LVL1:
-	  return osc_1->GetLevel();
+	  return osc_1.GetLevel();
 	case LVL2:
-	  return osc_2->GetLevel();
+	  return osc_2.GetLevel();
 	case TYP1:
-	  return osc_1->GetType();
+	  return osc_1.GetType();
 	case TYP2:
-	  return osc_2->GetType();
+	  return osc_2.GetType();
 	default:
 		break;
 	}
