@@ -30,8 +30,8 @@ const __unit_header unit_header_t unit_header = {
         // 8 Edit menu parameters
         {0, 2, 0, 1, k_unit_param_type_strings, 0, 0, 0, {"TYP1"}}, // Example of a strings type parameter
         {0, 3, 0, 1, k_unit_param_type_strings, 0, 0, 0, {"TYP2"}}, // Example of a strings type parameter
-        {0, 6, 0, 0, k_unit_param_type_db, 0, 0, 0, {"LVL1"}},
-        {0, 6, 0, 0, k_unit_param_type_db, 0, 0, 0, {"LVL2"}},
+        {0, 6, 0, 6, k_unit_param_type_db, 0, 0, 0, {"LVL1"}},
+        {0, 6, 0, 6, k_unit_param_type_db, 0, 0, 0, {"LVL2"}},
         {0, 0, 0, 0, k_unit_param_type_none, 0, 0, 0, {""}},
         {0, 0, 0, 0, k_unit_param_type_none, 0, 0, 0, {""}},
         {0, 0, 0, 0, k_unit_param_type_none, 0, 0, 0, {""}},
