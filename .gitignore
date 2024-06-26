@@ -61,3 +61,5 @@ tools/emscripten/emsdk
 *.dSYM/
 *.su
 
+*.idx
+tools/*

@@ -1,7 +1,6 @@
 /*
-Copyright 2024 Tomoaki Itoh
-This software is released under the MIT License, see LICENSE.txt.
-//*/
+Copyright 2024 Sebastian Murschall
+*/
 
 #include "unit_osc.h"
 #include "oscillator.h"
